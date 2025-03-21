@@ -1,0 +1,159 @@
+/* Custom styles for Stool Pigeon - Dark Mode */
+
+:root {
+    --dark-bg: #121212;
+    --darker-bg: #0c0c0c;
+    --dark-card: #1e1e1e;
+    --dark-primary: #6200ea;
+    --dark-primary-hover: #7c4dff;
+    --dark-secondary: #282828;
+    --dark-text: #e0e0e0;
+    --dark-text-muted: #909090;
+    --dark-border: #333333;
+    --dark-hover: #2c2c2c;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--dark-bg);
+    color: var(--dark-text);
+}
+
+.navbar-brand {
+    font-weight: bold;
+}
+
+.card {
+    background-color: var(--dark-card);
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.3);
+    border-radius: 0.5rem;
+    overflow: hidden;
+    border: 1px solid var(--dark-border);
+}
+
+.card-header {
+    font-weight: bold;
+    background-color: var(--dark-primary);
+    border-bottom: 1px solid var(--dark-border);
+}
+
+.btn-primary {
+    background-color: var(--dark-primary);
+    border-color: var(--dark-primary);
+}
+
+.btn-primary:hover {
+    background-color: var(--dark-primary-hover);
+    border-color: var(--dark-primary-hover);
+}
+
+#record-button {
+    transition: all 0.3s ease;
+}
+
+#record-button:hover {
+    transform: scale(1.02);
+}
+
+.form-check-label {
+    cursor: pointer;
+}
+
+.list-group-item {
+    transition: all 0.4s ease;
+    background-color: var(--dark-card);
+    border-color: var(--dark-border);
+    color: var(--dark-text);
+}
+
+.list-group-item:hover {
+    background-color: var(--dark-hover);
+}
+
+.badge.bg-primary {
+    background-color: var(--dark-primary) !important;
+}
+
+/* Dark mode forms */
+.form-control, .form-select {
+    background-color: var(--darker-bg);
+    border-color: var(--dark-border);
+    color: var(--dark-text);
+}
+
+.form-control:focus, .form-select:focus {
+    background-color: var(--darker-bg);
+    color: var(--dark-text);
+}
+
+.form-check-input {
+    background-color: var(--darker-bg);
+    border-color: var(--dark-border);
+}
+
+.form-check-input:checked {
+    background-color: var(--dark-primary);
+    border-color: var(--dark-primary);
+}
+
+/* HTMX specific animations */
+.htmx-indicator {
+    display: none;
+}
+
+.htmx-request .htmx-indicator {
+    display: inline-block;
+}
+
+.htmx-request .button-text {
+    display: none;
+}
+
+/* Animation for newly added records */
+.list-group-item.htmx-added {
+    opacity: 0;
+    transform: translateX(-20px);
+}
+
+.list-group-item.htmx-settling {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* Highlight for new records */
+@keyframes highlight-pulse {
+    0% { background-color: var(--dark-card); }
+    50% { background-color: rgba(98, 0, 234, 0.2); } /* dark-primary with opacity */
+    100% { background-color: var(--dark-card); }
+}
+
+.list-group-item.highlight-new {
+    animation: highlight-pulse 1.5s ease-in-out 2;
+    border-left: 3px solid var(--dark-primary);
+}
+
+/* Toast notifications styling for dark mode */
+.toast {
+    z-index: 1050;
+    background-color: var(--dark-card);
+    border-color: var(--dark-border);
+}
+
+.toast-header {
+    font-weight: bold;
+    background-color: var(--dark-primary);
+    color: white;
+}
+
+/* Dark mode bootstrap overrides */
+.bg-dark {
+    background-color: var(--dark-bg) !important;
+}
+
+.text-muted {
+    color: var(--dark-text-muted) !important;
+}
+
+.border-secondary {
+    border-color: var(--dark-border) !important;
+}

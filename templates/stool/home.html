@@ -1,0 +1,364 @@
+{% extends 'base.html' %}
+
+{% block title %}Track Your Stool{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Record Stool Section -->
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header text-white d-flex align-items-center">
+                <i class="bi bi-pencil-square me-2"></i>
+                <h5 class="mb-0">Record Stool</h5>
+            </div>
+            <div class="card-body">
+                <!-- Form with HTMX attributes -->
+                <form id="stool-form" method="post"
+                      hx-post="{% url 'stool:add_record' %}" 
+                      hx-target="#records-list" 
+                      hx-swap="innerHTML"
+                      hx-indicator="#form-indicator">
+                    {% csrf_token %}
+                    <div class="mb-4">
+                        <label class="form-label fw-bold mb-3">Select Stool Type:</label>
+                        {% for type_value, type_display in stool_types %}
+                        <div class="form-check mb-2 p-2 rounded {% if forloop.first %}border border-secondary{% endif %}" 
+                             onclick="document.getElementById('type_{{ type_value }}').checked = true;"
+                             id="type_option_{{ type_value }}">
+                            <input class="form-check-input" type="radio" name="stool_type" 
+                                   value="{{ type_value }}" id="type_{{ type_value }}" 
+                                   {% if forloop.first %}checked{% endif %}
+                                   onchange="highlightSelected('{{ type_value }}')">
+                            <label class="form-check-label d-block" for="type_{{ type_value }}">
+                                {{ type_display }}
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-lg w-100 mt-3" id="record-button">
+                        <span class="button-text">
+                            <i class="bi bi-plus-circle me-2"></i> Record Stool (HTMX)
+                        </span>
+                    </button>
+                    
+                    <!-- Regular submit button as fallback -->
+                    <button type="button" class="btn btn-outline-primary mt-2 w-100" onclick="document.getElementById('submit-regular').click()">
+                        <i class="bi bi-arrow-up-circle me-2"></i> Regular Submit (fallback)
+                    </button>
+                    <input type="submit" id="submit-regular" formaction="{% url 'stool:add_record' %}" style="display:none">
+                    
+                    <!-- Loading indicator -->
+                    <div class="d-flex justify-content-center mt-3">
+                        <div class="spinner-border text-primary htmx-indicator" role="status" id="form-indicator">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Stool Report Section -->
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header text-white d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-bar-chart-line me-2"></i>
+                    <h5 class="mb-0">Stool Report</h5>
+                </div>
+                <button class="btn btn-sm btn-outline-light" 
+                        hx-get="{% url 'stool:stool_stats' %}" 
+                        hx-target="#stool-stats" 
+                        hx-indicator="#stats-indicator"
+                        hx-trigger="click">
+                    <span id="stats-indicator" class="htmx-indicator">
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    </span>
+                    <i class="bi bi-arrow-clockwise"></i>
+                </button>
+            </div>
+            <!-- Target for stats HTMX updates -->
+            <div id="stool-stats" 
+                 hx-get="{% url 'stool:stool_stats' %}" 
+                 hx-indicator="#stats-indicator"
+                 hx-trigger="load, refresh from:body, recordAdded from:body, refreshStats from:body, every 60s">
+                <div class="text-center p-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Loading statistics...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Recent Records Section -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header text-white d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-clock-history me-2"></i>
+                    <h5 class="mb-0">Recent Records</h5>
+                    {% if records %}
+                    <span class="badge rounded-pill bg-secondary ms-2" id="records-count" 
+                          hx-swap-oob="true">{{ records|length }}</span>
+                    {% endif %}
+                </div>
+                <div>
+                    <span class="badge bg-dark text-light me-2" id="total-count" 
+                          hx-get="{% url 'stool:records_count' %}" 
+                          hx-trigger="load, recordAdded from:body"
+                          hx-swap="innerHTML">
+                        <i class="bi bi-database me-1"></i> Loading...
+                    </span>
+                    <button class="btn btn-sm btn-outline-light" 
+                            hx-get="{% url 'stool:records_list' %}" 
+                            hx-target="#records-list" 
+                            hx-indicator="#refresh-indicator">
+                        <span id="refresh-indicator" class="htmx-indicator">
+                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        </span>
+                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Target for HTMX updates -->
+                <div id="records-list">
+                    {% include 'stool/partials/records_list.html' %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<style>
+    /* Style the radio options to look clickable */
+    .form-check {
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .form-check:hover {
+        background-color: var(--dark-hover);
+    }
+    .form-check.selected {
+        background-color: var(--dark-secondary);
+        border: 1px solid var(--dark-primary) !important;
+    }
+</style>
+
+<script>
+    // Function to highlight the selected option
+    function highlightSelected(selectedValue) {
+        // Remove selected class from all options
+        document.querySelectorAll('.form-check').forEach(elem => {
+            elem.classList.remove('selected');
+            elem.classList.remove('border');
+            elem.classList.remove('border-secondary');
+        });
+        
+        // Add selected class to the chosen option
+        const selectedOption = document.getElementById('type_option_' + selectedValue);
+        if (selectedOption) {
+            selectedOption.classList.add('selected');
+        }
+    }
+    
+    // Initialize the selection
+    document.addEventListener('DOMContentLoaded', function() {
+        const checkedRadio = document.querySelector('input[name="stool_type"]:checked');
+        if (checkedRadio) {
+            highlightSelected(checkedRadio.value);
+        }
+        
+        // Add listeners to all radio buttons
+        document.querySelectorAll('input[name="stool_type"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                highlightSelected(this.value);
+            });
+        });
+    });
+
+    // Add manual form submission as a backup to HTMX
+    document.addEventListener('DOMContentLoaded', function() {
+        // Ensure stool stats are loaded
+        const statsElement = document.getElementById('stool-stats');
+        if (statsElement) {
+            console.log('Initializing stats load');
+            // Force load stool stats if not loaded automatically
+            setTimeout(function() {
+                if (!statsElement.querySelector('.display-6')) {
+                    console.log('Stats not loaded automatically, manually loading');
+                    fetch('{% url "stool:stool_stats" %}')
+                        .then(response => response.text())
+                        .then(html => {
+                            statsElement.innerHTML = html;
+                        })
+                        .catch(error => {
+                            console.error('Error loading stats:', error);
+                        });
+                }
+            }, 1000);
+        }
+        
+        const stoolForm = document.getElementById('stool-form');
+        const recordButton = document.getElementById('record-button');
+        
+        if (recordButton && stoolForm) {
+            recordButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Get the selected radio button
+                const selectedType = document.querySelector('input[name="stool_type"]:checked');
+                if (!selectedType) {
+                    alert('Please select a stool type');
+                    return;
+                }
+                
+                console.log('Submitting form with stool type:', selectedType.value);
+                
+                // Show loading indicator
+                const indicator = document.getElementById('form-indicator');
+                if (indicator) indicator.style.display = 'block';
+                
+                // Create form data
+                const formData = new FormData(stoolForm);
+                
+                // Get CSRF token
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                
+                // Submit the form via fetch API
+                fetch(stoolForm.getAttribute('hx-post'), {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'HX-Request': 'true',
+                        'HX-Trigger': 'record-button'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Server returned ' + response.status);
+                    }
+                    return response.text();
+                })
+                .then(html => {
+                    // Update the records list
+                    const recordsList = document.getElementById('records-list');
+                    if (recordsList) {
+                        recordsList.innerHTML = html;
+                    }
+                    
+                    // Show success notification
+                    showSuccessToast();
+                })
+                .catch(error => {
+                    console.error('Error submitting form:', error);
+                    alert('Error: ' + error.message);
+                })
+                .finally(() => {
+                    // Hide loading indicator
+                    if (indicator) indicator.style.display = 'none';
+                });
+            });
+        }
+    });
+    
+    // Show success toast
+    function showSuccessToast() {
+        const toast = document.createElement('div');
+        toast.classList.add('toast', 'position-fixed', 'bottom-0', 'end-0', 'm-3', 'text-white');
+        toast.setAttribute('role', 'alert');
+        toast.setAttribute('aria-live', 'assertive');
+        toast.setAttribute('aria-atomic', 'true');
+        toast.innerHTML = `
+            <div class="toast-header">
+                <i class="bi bi-check-circle me-2"></i>
+                <strong class="me-auto">Success!</strong>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+                Record added successfully!
+            </div>
+        `;
+        document.body.appendChild(toast);
+        
+        // Initialize and show the toast
+        const bsToast = new bootstrap.Toast(toast, { autohide: true, delay: 3000 });
+        bsToast.show();
+        
+        // Clean up the toast after it's hidden
+        toast.addEventListener('hidden.bs.toast', function() {
+            document.body.removeChild(toast);
+        });
+    }
+    
+    // Log HTMX events for debugging
+    document.addEventListener('htmx:beforeRequest', function(event) {
+        console.log('HTMX request starting', event.detail);
+    });
+    
+    document.addEventListener('htmx:afterRequest', function(event) {
+        console.log('HTMX request completed', event.detail);
+    });
+    
+    document.addEventListener('htmx:responseError', function(event) {
+        console.error('HTMX response error', event.detail);
+        alert('Error: ' + event.detail.xhr.responseText);
+    });
+
+    // Handle successful HTMX response for our records list
+    document.addEventListener('htmx:afterSwap', function(event) {
+        if (event.detail.target.id === 'records-list') {
+            showSuccessToast();
+            
+            // Refresh the stats after a new record is added
+            const statsElement = document.getElementById('stool-stats');
+            if (statsElement) {
+                console.log('Attempting to refresh stats after record added');
+                // Try HTMX refresh - multiple methods for redundancy
+                try {
+                    // Method 1: HTMX event trigger
+                    htmx.trigger(statsElement, 'refresh');
+                    console.log('HTMX refresh event triggered');
+                    
+                    // Method 2: HTMX direct request
+                    htmx.trigger(document.body, 'refreshStats');
+                    console.log('HTMX refreshStats event triggered');
+                    
+                    // Method 3: Forcefully trigger HTMX GET request
+                    setTimeout(() => {
+                        htmx.ajax('GET', '{% url "stool:stool_stats" %}', {target: '#stool-stats', swap: 'innerHTML'});
+                        console.log('HTMX ajax request sent directly');
+                    }, 300);
+                } catch (e) {
+                    console.error('HTMX refresh error:', e);
+                    // Fallback: manual fetch
+                    fetch('{% url "stool:stool_stats" %}')
+                        .then(response => response.text())
+                        .then(html => {
+                            statsElement.innerHTML = html;
+                            console.log('Manual fetch completed for stats');
+                        })
+                        .catch(error => {
+                            console.error('Error refreshing stats:', error);
+                        });
+                }
+            }
+        }
+    });
+    
+    // Add specific handler for the manual reload statistics button
+    document.addEventListener('click', function(event) {
+        // Find clicked button that has hx-target="#stool-stats"
+        if (event.target.closest('button[hx-target="#stool-stats"]')) {
+            console.log('Statistics reload button clicked');
+        }
+    });
+</script>
+{% endblock %}
