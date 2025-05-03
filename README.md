@@ -83,6 +83,34 @@ Default admin credentials:
 
 MIT
 
+## Docker
+
+### Using the Docker Image
+
+You can run the application using Docker:
+
+```bash
+docker pull yourusername/stool-pigeon:latest
+docker run -p 8000:8000 -v stool-data:/data/db yourusername/stool-pigeon:latest
+```
+
+Visit http://localhost:8000/ to access the application.
+
+### Building the Docker Image Locally
+
+```bash
+docker build -t stool-pigeon:local .
+docker run -p 8000:8000 -v stool-data:/data/db stool-pigeon:local
+```
+
+### Kubernetes Deployment
+
+A Kubernetes manifest is available in `k8s-manifest.yaml` for deploying to a Kubernetes cluster.
+
+```bash
+kubectl apply -f k8s-manifest.yaml
+```
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
