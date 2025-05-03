@@ -7,9 +7,18 @@
     <!-- Record Stool Section -->
     <div class="col-md-6">
         <div class="card mb-4">
-            <div class="card-header text-white d-flex align-items-center">
-                <i class="bi bi-pencil-square me-2"></i>
-                <h5 class="mb-0">Record Stool</h5>
+            <div class="card-header text-white d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="bi bi-pencil-square me-2"></i>
+                    <h5 class="mb-0 d-inline-block">Record Stool</h5>
+                </div>
+                {% if last_record %}
+                <div class="last-record-badge small">
+                    <span class="badge bg-light text-dark">
+                        <i class="bi bi-arrow-repeat me-1"></i> Using last settings
+                    </span>
+                </div>
+                {% endif %}
             </div>
             <div class="card-body">
                 <!-- Form with HTMX attributes -->
@@ -22,12 +31,12 @@
                     <div class="mb-4">
                         <label class="form-label fw-bold mb-3">Select Stool Type:</label>
                         {% for type_value, type_display in stool_types %}
-                        <div class="form-check mb-2 p-2 rounded {% if forloop.first %}border border-secondary{% endif %}" 
+                        <div class="form-check mb-2 p-2 rounded {% if last_record and last_record.stool_type == type_value %}border border-secondary{% elif not last_record and forloop.first %}border border-secondary{% endif %}" 
                              onclick="document.getElementById('type_{{ type_value }}').checked = true;"
                              id="type_option_{{ type_value }}">
                             <input class="form-check-input" type="radio" name="stool_type" 
                                    value="{{ type_value }}" id="type_{{ type_value }}" 
-                                   {% if forloop.first %}checked{% endif %}
+                                   {% if last_record and last_record.stool_type == type_value %}checked{% elif not last_record and forloop.first %}checked{% endif %}
                                    onchange="highlightSelected('{{ type_value }}')">
                             <label class="form-check-label d-block" for="type_{{ type_value }}">
                                 {{ type_display }}
@@ -35,16 +44,58 @@
                         </div>
                         {% endfor %}
                     </div>
-                    <button type="submit" class="btn btn-primary btn-lg w-100 mt-3" id="record-button">
-                        <span class="button-text">
-                            <i class="bi bi-plus-circle me-2"></i> Record Stool (HTMX)
-                        </span>
-                    </button>
                     
-                    <!-- Regular submit button as fallback -->
-                    <button type="button" class="btn btn-outline-primary mt-2 w-100" onclick="document.getElementById('submit-regular').click()">
-                        <i class="bi bi-arrow-up-circle me-2"></i> Regular Submit (fallback)
-                    </button>
+                    <div class="mb-4">
+                        <div class="card health-indicators">
+                            <div class="card-header text-white bg-dark">
+                                <h6 class="mb-0"><i class="bi bi-heart-pulse me-2"></i>Health Indicators</h6>
+                            </div>
+                            <div class="card-body py-2">
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input health-indicator-check" type="checkbox" role="switch" id="pain" name="pain"
+                                           {% if last_record and last_record.pain %}checked{% endif %}>
+                                    <label class="form-check-label" for="pain">
+                                        <span class="indicator-label">Pain</span>
+                                        <span class="badge bg-danger ms-1 opacity-50 health-badge">!</span>
+                                    </label>
+                                </div>
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input health-indicator-check" type="checkbox" role="switch" id="blood_in_stool" name="blood_in_stool"
+                                           {% if last_record and last_record.blood_in_stool %}checked{% endif %}>
+                                    <label class="form-check-label" for="blood_in_stool">
+                                        <span class="indicator-label">Blood in stool</span>
+                                        <span class="badge bg-danger ms-1 opacity-50 health-badge">!</span>
+                                    </label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input health-indicator-check" type="checkbox" role="switch" id="blood_on_paper" name="blood_on_paper"
+                                           {% if last_record and last_record.blood_on_paper %}checked{% endif %}>
+                                    <label class="form-check-label" for="blood_on_paper">
+                                        <span class="indicator-label">Blood on paper</span>
+                                        <span class="badge bg-danger ms-1 opacity-50 health-badge">!</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col">
+                            <button type="submit" class="btn btn-primary btn-lg w-100" id="record-button">
+                                <span class="button-text">
+                                    <i class="bi bi-plus-circle me-2"></i> Record Stool
+                                </span>
+                            </button>
+                        </div>
+                        {% if last_record %}
+                        <div class="col-auto">
+                            <button type="button" class="btn btn-outline-secondary btn-lg" id="clear-form-button">
+                                <i class="bi bi-x-circle"></i>
+                            </button>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Hidden submit input for fallback functionality -->
                     <input type="submit" id="submit-regular" formaction="{% url 'stool:add_record' %}" style="display:none">
                     
                     <!-- Loading indicator -->
@@ -78,10 +129,10 @@
                 </button>
             </div>
             <!-- Target for stats HTMX updates -->
-            <div id="stool-stats" 
-                 hx-get="{% url 'stool:stool_stats' %}" 
-                 hx-indicator="#stats-indicator"
-                 hx-trigger="load, refresh from:body, recordAdded from:body, refreshStats from:body, every 60s">
+            <div id="stool-stats" class="stool-stats-container"
+                 hx-get="{% url 'stool:stool_stats' %}"
+                 hx-trigger="load, stoolRecordAdded from:body"
+                 hx-indicator="#stats-indicator">
                 <div class="text-center p-5">
                     <div class="spinner-border text-primary" role="status">
                         <span class="visually-hidden">Loading...</span>
@@ -149,6 +200,109 @@
         background-color: var(--dark-secondary);
         border: 1px solid var(--dark-primary) !important;
     }
+    
+    /* Animation for updating stats */
+    @keyframes stats-update-flash {
+        0% { opacity: 1; box-shadow: 0 0 0 rgba(0,123,255,0); }
+        25% { opacity: 0.8; box-shadow: 0 0 10px rgba(0,123,255,0.5); }
+        100% { opacity: 1; box-shadow: 0 0 0 rgba(0,123,255,0); }
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .spin-animation {
+        display: inline-block;
+        animation: spin 1s linear infinite;
+    }
+    
+    .updating-stats {
+        animation: stats-update-flash 1s ease;
+        position: relative;
+    }
+    
+    .updating-stats::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0,123,255,0.05);
+        z-index: 1;
+        pointer-events: none;
+    }
+    
+    .update-badge {
+        display: inline-block;
+        font-size: 0.75rem;
+        padding: 0.15rem 0.4rem;
+        margin-left: 0.5rem;
+        border-radius: 0.25rem;
+        background-color: rgba(40, 167, 69, 0.2);
+        color: #28a745;
+        animation: fade-out 3s forwards;
+    }
+    
+    /* Health indicator styles */
+    .health-indicators .card-header {
+        background-color: #dc3545;
+        background-image: linear-gradient(45deg, #dc3545, #6c757d);
+    }
+    
+    .health-indicator-check:checked + .form-check-label .health-badge {
+        opacity: 1 !important;
+        animation: pulse 2s infinite;
+    }
+    
+    .health-indicator-check:not(:checked) + .form-check-label .indicator-label {
+        color: #6c757d;
+    }
+    
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+    
+    /* Style for the "Using last settings" badge */
+    .last-record-badge .badge {
+        animation: subtle-pulse 2s infinite;
+        opacity: 0.8;
+    }
+    
+    @keyframes subtle-pulse {
+        0% { opacity: 0.7; }
+        50% { opacity: 1; }
+        100% { opacity: 0.7; }
+    }
+    
+    /* Styles for the record time display */
+    .record-time-human {
+        min-width: 80px;
+        display: inline-block;
+        text-align: right;
+        font-style: italic;
+        color: #6c757d !important;
+    }
+    
+    /* Add a highlight for new records */
+    .highlight-new {
+        animation: highlight-fade 3s ease-out;
+    }
+    
+    @keyframes highlight-fade {
+        0% { background-color: rgba(13, 110, 253, 0.2); }
+        100% { background-color: transparent; }
+    }
+    
+    @keyframes fade-out {
+        0% { opacity: 1; }
+        80% { opacity: 1; }
+        100% { opacity: 0; display: none; }
+    }
 </style>
 
 <script>
@@ -170,6 +324,7 @@
     
     // Initialize the selection
     document.addEventListener('DOMContentLoaded', function() {
+        // Initialize stool type selection
         const checkedRadio = document.querySelector('input[name="stool_type"]:checked');
         if (checkedRadio) {
             highlightSelected(checkedRadio.value);
@@ -179,6 +334,79 @@
         document.querySelectorAll('input[name="stool_type"]').forEach(radio => {
             radio.addEventListener('change', function() {
                 highlightSelected(this.value);
+            });
+        });
+        
+        // Initialize health indicators - update the card if any indicators are checked
+        const healthIndicators = document.querySelectorAll('.health-indicator-check');
+        const card = document.querySelector('.health-indicators');
+        
+        if (card) {
+            // Check if any health indicators are checked initially
+            const hasCheckedIndicators = Array.from(healthIndicators).some(indicator => indicator.checked);
+            if (hasCheckedIndicators) {
+                card.classList.add('has-active-indicators');
+            }
+        }
+        
+        // Setup clear form button functionality
+        const clearFormButton = document.getElementById('clear-form-button');
+        if (clearFormButton) {
+            clearFormButton.addEventListener('click', function() {
+                // Clear all checkboxes
+                document.querySelectorAll('.health-indicator-check').forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+                
+                // Select the first stool type
+                const firstStoolType = document.querySelector('input[name="stool_type"]:first-of-type');
+                if (firstStoolType) {
+                    firstStoolType.checked = true;
+                    highlightSelected(firstStoolType.value);
+                }
+                
+                // Remove active indicators class from card
+                if (card) {
+                    card.classList.remove('has-active-indicators');
+                }
+                
+                // Show a toast notification that form was cleared
+                const toastHTML = `
+                <div class="toast-container position-fixed bottom-0 end-0 p-3">
+                    <div class="toast align-items-center text-white bg-secondary" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="d-flex">
+                            <div class="toast-body">
+                                <i class="bi bi-arrow-counterclockwise me-2"></i> Form reset to default values
+                            </div>
+                            <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                    </div>
+                </div>`;
+                
+                document.body.insertAdjacentHTML('beforeend', toastHTML);
+                const toastEl = document.body.querySelector('.toast:last-child');
+                const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+                toast.show();
+                
+                // Hide toast after it's shown
+                toastEl.addEventListener('hidden.bs.toast', function() {
+                    toastEl.parentNode.remove();
+                });
+            });
+        }
+        
+        // Add listeners to health indicator checkboxes
+        document.querySelectorAll('.health-indicator-check').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                // Toggle a class on the parent card to show active state
+                const card = this.closest('.health-indicators');
+                if (card) {
+                    if (document.querySelectorAll('.health-indicator-check:checked').length > 0) {
+                        card.classList.add('has-active-indicators');
+                    } else {
+                        card.classList.remove('has-active-indicators');
+                    }
+                }
             });
         });
     });
@@ -358,6 +586,83 @@
         // Find clicked button that has hx-target="#stool-stats"
         if (event.target.closest('button[hx-target="#stool-stats"]')) {
             console.log('Statistics reload button clicked');
+        }
+    });
+    
+    // Listen for the custom stoolRecordAdded event
+    document.body.addEventListener('htmx:afterOnLoad', function(event) {
+        if (event.detail.elt.id === 'stool-stats') {
+            console.log('Stool stats updated through HTMX');
+        }
+    });
+    
+    // Listen for the custom stoolRecordAdded event
+    document.body.addEventListener('stoolRecordAdded', function(event) {
+        console.log('Stool record added event received:', event.detail);
+        
+        // Get the stool stats element
+        const statsElement = document.getElementById('stool-stats');
+        if (statsElement) {
+            // Add a quick flash effect to indicate update
+            statsElement.classList.add('updating-stats');
+            
+            // Trigger HTMX to load the stats
+            htmx.trigger(statsElement, 'load');
+            
+            // Extract event details for logging
+            const stoolType = event.detail.type;
+            const hasPain = event.detail.pain;
+            console.log(`New stool record: Type ${stoolType}, Pain: ${hasPain}`);
+            
+            // Wait for HTMX to complete loading
+            document.addEventListener('htmx:afterSwap', function afterSwapHandler(e) {
+                if (e.detail.target.id === 'stool-stats') {
+                    console.log('Stats updated via HTMX after stool record added');
+                    
+                    // Remove the flash effect after a delay
+                    setTimeout(() => {
+                        statsElement.classList.remove('updating-stats');
+                    }, 1000);
+                    
+                    // Add a special badge with the record type information
+                    if (stoolType) {
+                        const bloodInStool = event.detail.blood_in_stool;
+                        const bloodOnPaper = event.detail.blood_on_paper;
+                        
+                        // Create badges for health indicators
+                        let indicators = '';
+                        if (hasPain) indicators += '<span class="badge bg-danger ms-1">Pain</span>';
+                        if (bloodInStool) indicators += '<span class="badge bg-danger ms-1">Blood in stool</span>';
+                        if (bloodOnPaper) indicators += '<span class="badge bg-danger ms-1">Blood on paper</span>';
+                        
+                        const typeInfo = document.createElement('div');
+                        typeInfo.className = 'text-center recent-update-info';
+                        typeInfo.innerHTML = `
+                            <span class="badge bg-info my-2">
+                                <i class="bi bi-info-circle me-1"></i>
+                                Latest record: Type ${stoolType} ${indicators}
+                            </span>
+                        `;
+                        
+                        // Find a good place to insert this info
+                        const cardBody = statsElement.querySelector('.card-body');
+                        if (cardBody) {
+                            const rowDiv = cardBody.querySelector('.row.g-0');
+                            if (rowDiv) {
+                                rowDiv.insertAdjacentElement('beforebegin', typeInfo);
+                                
+                                // Auto-remove after 5 seconds
+                                setTimeout(() => {
+                                    typeInfo.remove();
+                                }, 5000);
+                            }
+                        }
+                    }
+                    
+                    // Remove this event listener since we only need it once
+                    document.removeEventListener('htmx:afterSwap', afterSwapHandler);
+                }
+            });
         }
     });
 </script>
