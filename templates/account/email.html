@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% load i18n %}
+{% load django_bootstrap5 %}
+
+{% block title %}{% trans "E-mail Addresses" %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-header text-white d-flex align-items-center">
+        <i class="bi bi-envelope me-2"></i>
+        <h5 class="mb-0">{% trans "E-mail Addresses" %}</h5>
+      </div>
+      <div class="card-body">
+        <p class="mb-4">{% trans 'The following e-mail addresses are associated with your account:' %}</p>
+
+        <form action="{% url 'account_email' %}" class="email_list" method="post">
+          {% csrf_token %}
+          
+          <div class="list-group mb-4">
+            {% for emailaddress in user.emailaddress_set.all %}
+            <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" id="email_item_{{ forloop.counter }}">
+              <div class="form-check">
+                <input id="email_radio_{{ forloop.counter }}" type="radio" name="email" 
+                      {% if emailaddress.primary or user.emailaddress_set.count == 1 %}checked="checked"{% endif %} 
+                      value="{{ emailaddress.email }}" 
+                      class="form-check-input">
+                <label for="email_radio_{{ forloop.counter }}" class="form-check-label" for="email_radio_{{ forloop.counter }}">{{ emailaddress.email }}</label>
+              </div>
+              <div>
+                {% if emailaddress.verified %}
+                <span class="badge bg-success">{% trans "Verified" %}</span>
+                {% else %}
+                <span class="badge bg-warning text-dark">{% trans "Unverified" %}</span>
+                {% endif %}
+                {% if emailaddress.primary %}<span class="badge bg-primary">{% trans "Primary" %}</span>{% endif %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+
+          <div class="d-flex gap-2 mb-4">
+            <button class="btn btn-sm btn-primary" type="submit" name="action_primary">
+              <i class="bi bi-check-circle me-1"></i>{% trans 'Make Primary' %}
+            </button>
+            <button class="btn btn-sm btn-outline-light" type="submit" name="action_send">
+              <i class="bi bi-send me-1"></i>{% trans 'Re-send Verification' %}
+            </button>
+            <button class="btn btn-sm btn-danger ms-auto" type="submit" name="action_remove">
+              <i class="bi bi-trash me-1"></i>{% trans 'Remove' %}
+            </button>
+          </div>
+        </form>
+
+        <hr>
+
+        <h5 class="mb-3">{% trans "Add E-mail Address" %}</h5>
+        
+        <form method="post" action="{% url 'account_email' %}" class="add_email">
+          {% csrf_token %}
+          
+          {% bootstrap_form form %}
+          
+          <div class="d-grid mt-3">
+            <button name="action_add" type="submit" class="btn btn-primary">
+              <i class="bi bi-plus-circle me-2"></i>{% trans "Add E-mail" %}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script type="text/javascript">
+(function() {
+  var message = "{% trans 'Do you really want to remove the selected e-mail address?' %}";
+  var actions = document.getElementsByName('action_remove');
+  if (actions.length) {
+    actions[0].addEventListener("click", function(e) {
+      if (! confirm(message)) {
+        e.preventDefault();
+      }
+    });
+  }
+})();
+</script>
+{% endblock %}

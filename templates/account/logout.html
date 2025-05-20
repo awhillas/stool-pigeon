@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% load i18n %}
+{% load django_bootstrap5 %}
+
+{% block title %}{% trans "Sign Out" %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header text-white d-flex align-items-center">
+        <i class="bi bi-box-arrow-right me-2"></i>
+        <h5 class="mb-0">{% trans "Sign Out" %}</h5>
+      </div>
+      <div class="card-body">
+        <p class="mb-3">{% trans 'Are you sure you want to sign out?' %}</p>
+
+        <form method="post" action="{% url 'account_logout' %}">
+          {% csrf_token %}
+          
+          {% if redirect_field_value %}
+          <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}"/>
+          {% endif %}
+          
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-danger">
+              <i class="bi bi-box-arrow-right me-2"></i>{% trans 'Sign Out' %}
+            </button>
+            <a href="{% url 'stool:home' %}" class="btn btn-outline-light">
+              <i class="bi bi-arrow-left me-2"></i>{% trans 'Cancel' %}
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

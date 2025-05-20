@@ -1,0 +1,41 @@
+{% load socialaccount %}
+
+{% get_providers as socialaccount_providers %}
+
+{% for provider in socialaccount_providers %}
+  {% if provider.id == "openid" %}
+    {% for brand in provider.get_brands %}
+    <a title="{{ brand.name }}" 
+       href="{% provider_login_url provider.id openid=brand.openid_url process=process %}"
+       class="btn btn-outline-light mb-2">
+      <i class="bi bi-globe me-2"></i>{{ brand.name }}
+    </a>
+    {% endfor %}
+  {% endif %}
+  
+  {% if provider.id == "google" %}
+    <a title="{{ provider.name }}" 
+       href="{% provider_login_url provider.id process=process scope=scope auth_params=auth_params %}"
+       class="btn btn-outline-light mb-2">
+      <i class="bi bi-google me-2"></i>{% if process == "connect" %}Connect to{% else %}Sign in with{% endif %} {{ provider.name }}
+    </a>
+  {% elif provider.id == "facebook" %}
+    <a title="{{ provider.name }}" 
+       href="{% provider_login_url provider.id process=process scope=scope auth_params=auth_params %}"
+       class="btn btn-outline-light mb-2">
+      <i class="bi bi-facebook me-2"></i>{% if process == "connect" %}Connect to{% else %}Sign in with{% endif %} {{ provider.name }}
+    </a>
+  {% elif provider.id == "github" %}
+    <a title="{{ provider.name }}" 
+       href="{% provider_login_url provider.id process=process scope=scope auth_params=auth_params %}"
+       class="btn btn-outline-light mb-2">
+      <i class="bi bi-github me-2"></i>{% if process == "connect" %}Connect to{% else %}Sign in with{% endif %} {{ provider.name }}
+    </a>
+  {% else %}
+    <a title="{{ provider.name }}" 
+       href="{% provider_login_url provider.id process=process scope=scope auth_params=auth_params %}"
+       class="btn btn-outline-light mb-2">
+      <i class="bi bi-globe me-2"></i>{% if process == "connect" %}Connect to{% else %}Sign in with{% endif %} {{ provider.name }}
+    </a>
+  {% endif %}
+{% endfor %}

@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% load i18n %}
+{% load account socialaccount %}
+{% load django_bootstrap5 %}
+
+{% block title %}{% trans "Sign In" %}{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header text-white d-flex align-items-center">
+        <i class="bi bi-box-arrow-in-right me-2"></i>
+        <h5 class="mb-0">{% trans "Sign In" %}</h5>
+      </div>
+      <div class="card-body">
+        {% if socialaccount_providers %}
+        <div class="mb-4">
+          <p class="text-center mb-3">{% trans "Sign in using:" %}</p>
+          <div class="d-grid gap-2">
+            {% for provider in socialaccount_providers %}
+              {% if provider.id == 'google' %}
+                <a href="{% provider_login_url provider.id process=process scope=scope auth_params=auth_params %}"
+                  class="btn btn-outline-light">
+                  <i class="bi bi-google me-2"></i>{% trans "Sign in with Google" %}
+                </a>
+              {% elif provider.id == 'facebook' %}
+                <a href="{% provider_login_url provider.id process=process scope=scope auth_params=auth_params %}"
+                  class="btn btn-outline-light">
+                  <i class="bi bi-facebook me-2"></i>{% trans "Sign in with Facebook" %}
+                </a>
+              {% elif provider.id == 'github' %}
+                <a href="{% provider_login_url provider.id process=process scope=scope auth_params=auth_params %}"
+                  class="btn btn-outline-light">
+                  <i class="bi bi-github me-2"></i>{% trans "Sign in with GitHub" %}
+                </a>
+              {% else %}
+                <a href="{% provider_login_url provider.id process=process scope=scope auth_params=auth_params %}"
+                  class="btn btn-outline-light">
+                  <i class="bi bi-globe me-2"></i>{% trans "Sign in with" %} {{ provider.name }}
+                </a>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+        <div class="text-center my-3">
+          <span class="bg-dark px-3">{% trans "or" %}</span>
+        </div>
+        {% endif %}
+
+        <form class="login" method="POST" action="{% url 'account_login' %}">
+          {% csrf_token %}
+          
+          {% bootstrap_form form %}
+          
+          {% if redirect_field_value %}
+          <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+          {% endif %}
+          
+          <div class="d-grid gap-2 mt-4">
+            <button class="btn btn-primary" type="submit">
+              <i class="bi bi-box-arrow-in-right me-2"></i>{% trans "Sign In" %}
+            </button>
+          </div>
+          
+          <div class="mt-4 text-center">
+            <a class="text-decoration-none me-3" href="{% url 'account_reset_password' %}">
+              <i class="bi bi-key me-1"></i>{% trans "Forgot Password?" %}
+            </a>
+            <a class="text-decoration-none" href="{{ signup_url }}">
+              <i class="bi bi-person-plus me-1"></i>{% trans "Sign up" %}
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

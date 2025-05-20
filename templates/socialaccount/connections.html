@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% load i18n %}
+
+{% block title %}{% trans "Account Connections" %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-header text-white d-flex align-items-center">
+        <i class="bi bi-link me-2"></i>
+        <h5 class="mb-0">{% trans "Account Connections" %}</h5>
+      </div>
+      <div class="card-body">
+        {% if form.accounts %}
+        <p class="mb-4">
+          {% blocktrans %}You can sign in to your account using any of the following third party accounts:{% endblocktrans %}
+        </p>
+
+        <form method="post" action="{% url 'socialaccount_connections' %}">
+          {% csrf_token %}
+
+          <div class="list-group mb-4">
+            {% for base_account in form.accounts %}
+              {% with base_account.get_provider_account as account %}
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                  <div class="form-check">
+                    <input id="id_account_{{ base_account.id }}" type="radio" name="account" value="{{ base_account.id }}" class="form-check-input">
+                    <label for="id_account_{{ base_account.id }}" class="form-check-label">
+                      <span class="provider-icon me-2">
+                        {% if account.get_brand.id == 'google' %}
+                          <i class="bi bi-google"></i>
+                        {% elif account.get_brand.id == 'facebook' %}
+                          <i class="bi bi-facebook"></i>
+                        {% elif account.get_brand.id == 'github' %}
+                          <i class="bi bi-github"></i>
+                        {% else %}
+                          <i class="bi bi-globe"></i>
+                        {% endif %}
+                      </span>
+                      <span class="provider-name">{{ account.get_brand.name }}</span>
+                      <small class="text-muted ms-2">{{ account }}</small>
+                    </label>
+                  </div>
+                </div>
+              {% endwith %}
+            {% endfor %}
+          </div>
+
+          <div>
+            <button class="btn btn-danger" type="submit">
+              <i class="bi bi-trash me-2"></i>{% trans 'Remove' %}
+            </button>
+          </div>
+        </form>
+
+        {% else %}
+        <div class="alert alert-info">
+          <i class="bi bi-info-circle me-2"></i>
+          {% blocktrans %}You currently have no social network accounts connected to this account.{% endblocktrans %}
+        </div>
+        {% endif %}
+
+        <hr>
+
+        <h5 class="mb-3">{% trans 'Add a Third Party Account' %}</h5>
+
+        <div class="d-grid gap-2 provider-buttons">
+          {% include "socialaccount/snippets/provider_list.html" with process="connect" %}
+        </div>
+
+        {% include "socialaccount/snippets/login_extra.html" %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

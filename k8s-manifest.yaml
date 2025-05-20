@@ -1,0 +1,89 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: stool-pigeon-data-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stool-pigeon
+  labels:
+    app: stool-pigeon
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: stool-pigeon
+  template:
+    metadata:
+      labels:
+        app: stool-pigeon
+    spec:
+      containers:
+      - name: stool-pigeon
+        image: stool-pigeon:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8000
+        env:
+        - name: DJANGO_DEBUG
+          value: "False"
+        - name: DJANGO_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: stool-pigeon-secrets
+              key: django-secret-key
+        - name: ALLOWED_HOSTS
+          value: "*"
+        - name: GOOGLE_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: stool-pigeon-secrets
+              key: google-client-id
+        - name: GOOGLE_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: stool-pigeon-secrets
+              key: google-client-secret
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+          requests:
+            cpu: "200m"
+            memory: "256Mi"
+        volumeMounts:
+        - name: stool-pigeon-data
+          mountPath: /data/db
+      volumes:
+      - name: stool-pigeon-data
+        persistentVolumeClaim:
+          claimName: stool-pigeon-data-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: stool-pigeon-service
+spec:
+  selector:
+    app: stool-pigeon
+  ports:
+  - port: 80
+    targetPort: 8000
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: stool-pigeon-secrets
+type: Opaque
+stringData:
+  django-secret-key: "b6ceed32-3607-4f93-8c52-bc4e983fb071"
+  google-client-id: "your-google-client-id"
+  google-client-secret: "your-google-client-secret"

@@ -1,0 +1,40 @@
+# Virtual environments
+venv/
+env/
+.env/
+
+# Database files
+*.sqlite3
+
+# Version control
+.git/
+.gitignore
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.pytest_cache/
+
+# Docker and Kubernetes files
+Dockerfile
+.dockerignore
+k8s-manifest.yaml
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs and temporary files
+*.log
+tmp/
+temp/
+
+# Documentation
+README.md
+LICENSE
+docs/
