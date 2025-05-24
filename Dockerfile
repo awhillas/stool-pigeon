@@ -15,15 +15,17 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy project files
 COPY . .
 
-# Create directory for SQLite database
-RUN mkdir -p /data/db
-RUN chmod 777 /data/db
-
-# Set the database path to persistent storage
-ENV SQLITE_PATH=/data/db/db.sqlite3
+# # Create directory for SQLite database
+# RUN mkdir -p /data/db
+# RUN chmod 777 /data/db
+# # Set the database path to persistent storage
+# ENV SQLITE_PATH=/data/db/db.sqlite3
 
 # Expose port
 EXPOSE 3000
 
-# CMD uvicorn pigeon.asgi:application --host 0.0.0.0 --port 3000
-CMD gunicorn pigeon.asgi:application --bind 0.0.0.0:3000
+ENV DJANGO_SETTINGS_MODULE="pigeon.production" \
+    DEBUG="true"
+
+CMD uvicorn pigeon.asgi:application --host 0.0.0.0 --port 3000
+# CMD gunicorn pigeon.asgi:application --bind 0.0.0.0:3000

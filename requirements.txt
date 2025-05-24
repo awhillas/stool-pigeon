@@ -50,6 +50,8 @@ oauthlib==3.2.2
     #   requests-oauthlib
 packaging==25.0
     # via gunicorn
+psycopg2-binary==2.9.10
+    # via stool-pigeon (pyproject.toml)
 pycparser==2.22
     # via
     #   stool-pigeon (pyproject.toml)

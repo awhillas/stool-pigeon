@@ -12,6 +12,11 @@ A Django-based app for tracking your stool health with easy logging and monitori
 - HTMX for seamless front-end interactions without page reloads
 - No email verification required
 
+## TODO
+
+- [ ] Setup config for PROD to use postgres. 
+- [ ] Set DJANGO_SETTINGS_MODULE="config.production"
+  
 ## Setup
 
 ### Prerequisites
