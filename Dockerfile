@@ -25,4 +25,5 @@ ENV SQLITE_PATH=/data/db/db.sqlite3
 # Expose port
 EXPOSE 3000
 
-CMD uvicorn pigeon.asgi:application --host 0.0.0.0 --port 3000
+# CMD uvicorn pigeon.asgi:application --host 0.0.0.0 --port 3000
+CMD gunicorn pigeon.asgi:application --bind 0.0.0.0 --port 3000

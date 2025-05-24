@@ -34,6 +34,8 @@ django-bootstrap5==25.1
     # via stool-pigeon (pyproject.toml)
 django-htmx==1.23.0
     # via stool-pigeon (pyproject.toml)
+gunicorn==23.0.0
+    # via stool-pigeon (pyproject.toml)
 h11==0.16.0
     # via uvicorn
 idna==3.10
@@ -46,6 +48,8 @@ oauthlib==3.2.2
     # via
     #   stool-pigeon (pyproject.toml)
     #   requests-oauthlib
+packaging==25.0
+    # via gunicorn
 pycparser==2.22
     # via
     #   stool-pigeon (pyproject.toml)
