@@ -27,6 +27,7 @@ dependencies = [
     "requests-oauthlib==2.0.0",
     "sqlparse==0.5.3",
     "urllib3==2.3.0",
+    "uvicorn>=0.34.2",
 ]
 
 [project.optional-dependencies]

@@ -23,9 +23,6 @@ RUN chmod 777 /data/db
 ENV SQLITE_PATH=/data/db/db.sqlite3
 
 # Expose port
-EXPOSE 8000
+EXPOSE 3000
 
-# Run database migrations on startup
-CMD python manage.py migrate && \
-    python manage.py setup_site && \
-    python manage.py runserver 0.0.0.0:8000
+CMD uvicorn pigeon.asgi:application --host 0.0.0.0 --port 3000
