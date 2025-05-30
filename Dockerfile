@@ -27,5 +27,6 @@ EXPOSE 3000
 ENV DJANGO_SETTINGS_MODULE="pigeon.production" \
     DEBUG="true"
 
-CMD uvicorn pigeon.asgi:application --host 0.0.0.0 --port 3000
-# CMD gunicorn pigeon.asgi:application --bind 0.0.0.0:3000
+CMD python manage.py migrate && \
+    python manage.py setup_site && \ 
+    uvicorn pigeon.asgi:application --host 0.0.0.0 --port 3000
