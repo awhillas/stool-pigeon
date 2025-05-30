@@ -29,4 +29,5 @@ ENV DJANGO_SETTINGS_MODULE="pigeon.production" \
 
 CMD python manage.py migrate && \
     python manage.py setup_site && \ 
+    python manage.py collectstatic --noinput && \
     uvicorn pigeon.asgi:application --host 0.0.0.0 --port 3000
