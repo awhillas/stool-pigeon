@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',  # Required for allauth
+    'django.contrib.humanize',
     
     # Third-party apps
     'allauth',
@@ -46,7 +47,6 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google',
     'django_bootstrap5',
     'django_htmx',
-    'django.contrib.humanize',
     
     # Local apps
     'stool',
