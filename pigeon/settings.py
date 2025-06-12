@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google',
     'django_bootstrap5',
     'django_htmx',
+    'django.contrib.humanize',
     
     # Local apps
     'stool',

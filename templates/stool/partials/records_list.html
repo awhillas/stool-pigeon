@@ -1,3 +1,4 @@
+{% load humanize %}
 <!-- Out-of-band update for the records count -->
 <span id="records-count" hx-swap-oob="true" class="badge rounded-pill bg-secondary ms-2">{{ records|length }}</span>
 
@@ -11,7 +12,7 @@
                 {% else %}
                 <i class="bi bi-dot me-2"></i>
                 {% endif %}
-                {{ record.get_stool_type_display }}
+                {{ record.stool_type }}
                 {% if record.pain %} <span class="badge bg-danger">Pain</span>{% endif %}
                 {% if record.blood_in_stool %} <span class="badge bg-danger">Blood in stool</span>{% endif %}
                 {% if record.blood_on_paper %} <span class="badge bg-danger">Blood on paper</span>{% endif %}
@@ -19,19 +20,7 @@
             <div class="d-flex align-items-center">
                 <!-- Human readable time -->
                 <span class="text-muted me-2 small record-time-human">
-                    {% with time_diff=record.timestamp|timesince %}
-                        {% if "minute" in time_diff or "second" in time_diff or time_diff == "0 minutes" %}
-                            Just now
-                        {% elif "hour" in time_diff and "," not in time_diff %}
-                            {{ time_diff }} ago
-                        {% elif "day" in time_diff and "," not in time_diff and not "days" in time_diff %}
-                            Yesterday
-                        {% elif "days" in time_diff and "," not in time_diff and time_diff|first|add:"0" < 7 %}
-                            {{ time_diff }} ago
-                        {% else %}
-                            {{ record.timestamp|date:"D, M d" }}
-                        {% endif %}
-                    {% endwith %}
+                    {{ record.timestamp|naturaltime }}
                 </span>
                 <!-- Exact timestamp -->
                 <span class="badge bg-primary rounded-pill">{{ record.timestamp|date:"M d, Y g:i A" }}</span>
