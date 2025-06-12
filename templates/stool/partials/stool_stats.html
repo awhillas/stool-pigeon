@@ -1,30 +1,22 @@
+{% if stats.stats_available %}
 <div class="card-body p-0">
-    <!-- Debug timestamp for reference -->
-    <div class="text-center text-muted small py-1 bg-dark" style="opacity: 0.7;">
-        Stats generated: {{ now|date:"Y-m-d H:i:s" }}
-        {% if is_update %}
-        <span class="update-badge" id="update-notification">
-            <i class="bi bi-arrow-repeat spin-animation"></i> Updated
-        </span>
-        {% endif %}
-    </div>
     <div class="row g-0">
         <div class="col-md-6 border-end border-secondary">
             <div class="p-4 text-center">
                 <h6 class="mb-3">Last 7 Days <small class="text-muted">(Past week)</small></h6>
                 <div class="d-flex justify-content-around align-items-center">
                     <div class="text-center">
-                        <div class="display-6 text-primary mb-1">{{ week_mean }}</div>
+                        <div class="display-6 text-primary mb-1">{{ stats.week_mean }}</div>
                         <div class="small text-muted">Average per day</div>
                     </div>
                     <div class="d-none d-sm-block border-start border-secondary" style="height: 60px;"></div>
                     <div class="text-center">
-                        <div class="display-6 text-info mb-1">{{ week_std }}</div>
+                        <div class="display-6 text-info mb-1">{{ stats.week_std }}</div>
                         <div class="small text-muted">StdDev</div>
                     </div>
                     <div class="d-none d-sm-block border-start border-secondary" style="height: 60px;"></div>
                     <div class="text-center">
-                        <div class="display-6 text-success mb-1">{{ week_total }}</div>
+                        <div class="display-6 text-success mb-1">{{ stats.week_total }}</div>
                         <div class="small text-muted">Total entries</div>
                     </div>
                 </div>
@@ -35,31 +27,29 @@
                 <h6 class="mb-3">Last 30 Days <small class="text-muted">(Past month)</small></h6>
                 <div class="d-flex justify-content-around align-items-center">
                     <div class="text-center">
-                        <div class="display-6 text-primary mb-1">{{ month_mean }}</div>
+                        <div class="display-6 text-primary mb-1">{{ stats.month_mean }}</div>
                         <div class="small text-muted">Average per day</div>
                     </div>
                     <div class="d-none d-sm-block border-start border-secondary" style="height: 60px;"></div>
                     <div class="text-center">
-                        <div class="display-6 text-info mb-1">{{ month_std }}</div>
+                        <div class="display-6 text-info mb-1">{{ stats.month_std }}</div>
                         <div class="small text-muted">StdDev</div>
                     </div>
                     <div class="d-none d-sm-block border-start border-secondary" style="height: 60px;"></div>
                     <div class="text-center">
-                        <div class="display-6 text-success mb-1">{{ month_total }}</div>
+                        <div class="display-6 text-success mb-1">{{ stats.month_total }}</div>
                         <div class="small text-muted">Total entries</div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <!-- Manual refresh option for users -->
-    <div class="text-center p-2 bg-dark border-top border-secondary">
-        <button class="btn btn-sm btn-outline-light" 
-                hx-get="{% url 'stool:stool_stats' %}" 
-                hx-target="#stool-stats" 
-                hx-swap="innerHTML"
-                hx-indicator="#stats-indicator">
-            <i class="bi bi-arrow-repeat me-1"></i> Reload Statistics
-        </button>
+</div>
+{% else %}
+<div class="card-body p-4 text-center">
+    <div class="text-muted">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        Statistics module not available
     </div>
 </div>
+{% endif %}
